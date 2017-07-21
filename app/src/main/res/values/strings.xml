@@ -11,10 +11,15 @@
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
-     limitations under the License.
--->
+    limitations under the License.
+    -->
 <resources>
-    <string name="app_name">Quake Report</string>
-    <string name="no_earthquakes">No earthquakes found.  :(</string>
-    <string name="no_internet_connection">No internet connection.  :(</string>
+<string name="app_name">Quake Report</string>
+<string name="no_earthquakes">No earthquakes found.  :(</string>
+<string name="no_internet_connection">No internet connection.  :(</string>
+
+<!-- Settings Menu Item [CHAR LIMIT=NONE] -->
+<string name="settings_menu_item">Settings</string>
+<!-- Settings Activity Title [CHAR LIMIT=NONE] -->
+<string name="settings_title">Earthquake Settings</string>
 </resources>
