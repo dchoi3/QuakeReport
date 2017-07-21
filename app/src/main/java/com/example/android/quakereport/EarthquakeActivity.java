@@ -15,32 +15,42 @@
  */
 package com.example.android.quakereport;
 
-import android.app.DownloadManager;
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
- public class EarthquakeActivity extends AppCompatActivity {
+ public class EarthquakeActivity extends AppCompatActivity
+         implements LoaderManager.LoaderCallbacks<List<Earthquake>>{
+
     public static final String LOG_TAG = EarthquakeActivity.class.getName();
     EarthquakeArrayAdapter earthquakeArrayAdapter;
-
-    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=4&limit=100";
+    private static final int EARTHQUAKE_LOADER_ID = 1;
+    private TextView mEmptyStateTextView;
+    private ProgressBar progressBar;
+    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=3&limit=100";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.earthquake_activity);
+        final Vibrator vb = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+
 
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
         earthquakeArrayAdapter = new EarthquakeArrayAdapter(this, R.layout.earthquake_customlistview, new ArrayList<Earthquake>());
@@ -48,7 +58,7 @@ import java.util.List;
         earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                vb.vibrate(100);
                 Earthquake currentEarthquake = earthquakeArrayAdapter.getItem(position);
                 Uri earthquakeUri = Uri.parse(currentEarthquake.getUrl());
                 Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
@@ -57,32 +67,49 @@ import java.util.List;
 
             }
         });
-        EarthquakeAsyncTask task = new EarthquakeAsyncTask();
-        task.execute(USGS_REQUEST_URL);
+
+        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        earthquakeListView.setEmptyView(mEmptyStateTextView);
+        progressBar = (ProgressBar) findViewById(R.id.loading_spinner);
+
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        if(networkInfo != null && networkInfo.isConnected()){
+            LoaderManager loaderManager = getLoaderManager();
+            loaderManager.initLoader(EARTHQUAKE_LOADER_ID, null, this);
+        }else{
+            progressBar.setVisibility(View.GONE);
+            mEmptyStateTextView.setText(R.string.no_internet_connection);
+        }
+
+
 
     }
 
+     @Override
+     public Loader<List<Earthquake>> onCreateLoader(int id, Bundle args) {
+
+         Log.i("INSIDE OF :", "onCreateLoader");
+         return new EarthquakeLoader(this, USGS_REQUEST_URL);
+     }
+
+     @Override
+     public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> data) {
+         Log.i("INSIDE OF :", "onLoadFinished");
+         earthquakeArrayAdapter.clear();
+         if (data != null && !data.isEmpty()) {
+             earthquakeArrayAdapter.addAll(data);
+         }
+         progressBar.setVisibility(View.GONE);
+         mEmptyStateTextView.setText(R.string.no_earthquakes);
+     }
+
+     @Override
+     public void onLoaderReset(Loader<List<Earthquake>> loader) {
+         Log.i("INSIDE OF :", "onLoaderReset");
+         earthquakeArrayAdapter.clear();
+     }
 
 
-    private class EarthquakeAsyncTask extends AsyncTask<String, Void, List<Earthquake>>{
-
-
-        @Override
-        protected List<Earthquake> doInBackground(String... params) {
-            if(params.length < 1 || params[0] == null){
-                return null;
-            }
-            List<Earthquake> result = QueryUtils.fetchEarthquakeData(params[0]);
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(List<Earthquake> earthquakes) {
-            earthquakeArrayAdapter.clear();
-            if (earthquakes != null && !earthquakes.isEmpty()) {
-                earthquakeArrayAdapter.addAll(earthquakes);
-            }
-        }
-    }
-
-}
+ }
