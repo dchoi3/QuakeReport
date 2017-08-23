@@ -16,5 +16,4 @@
         android:selectAllOnFocus="true"
         android:title="@string/settings_min_magnitude_label" />
 
-
 </PreferenceScreen>

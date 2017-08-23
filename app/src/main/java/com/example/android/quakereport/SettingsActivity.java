@@ -10,6 +10,7 @@ import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.SeekBar;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -20,7 +21,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
-    public static class EarthqukePreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener{
+    public static class EarthqukePreferenceFragment extends PreferenceFragment
+            implements Preference.OnPreferenceChangeListener{
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -58,5 +60,6 @@ public class SettingsActivity extends AppCompatActivity {
             onPreferenceChange(p, preferenceString);
 
         }
+
     }
 }
